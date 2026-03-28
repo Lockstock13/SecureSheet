@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#0e0e0e"/>
+<link href="/manifest.json" rel="manifest"/>
+<link href="/icon.png" rel="apple-touch-icon"/>
+<title>SecureSheet - Entry Details</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+        }
+        .data-grid-cols {
+            grid-template-columns: 100px 1fr 80px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  
+    <script type="module" src="/src/main.js"></script>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 antialiased">
+<!-- TopAppBar Navigation Shell -->
+<header class="flex justify-between items-center w-full px-4 py-3 bg-[#131313] border-b border-outline-variant/15 sticky top-0 z-50">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer" onclick="window.location.href='/'">arrow_back</button>
+<span class="text-xs font-black tracking-widest text-slate-100 font-['Space_Grotesk'] uppercase mr-auto md:mr-0 ml-4">Entry Details</span>
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors duration-150 p-1 rounded">search</button>
+<span class="sync-indicator w-2 h-2 rounded-full bg-[#424754]" title="Google Sheets: Not Connected"></span>
+<button class="btn-lock-app w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-outline-variant/15 hover:bg-surface-container-highest transition-colors" title="Lock Vault">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock</span>
+</button>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-4 py-6 mb-20">
+<!-- Breadcrumb & Actions -->
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label text-xs uppercase tracking-widest">
+<span class="material-symbols-outlined !text-sm">folder_open</span>
+<span>Vault</span>
+<span class="material-symbols-outlined !text-sm">chevron_right</span>
+<span id="det-breadcrumb" class="text-primary truncate max-w-[120px]">...</span>
+</div>
+<div class="flex gap-1.5">
+<button id="det-btn-edit" class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center gap-1 px-3 py-1.5 rounded-sm transition-all border border-outline-variant/10 font-label text-[10px] uppercase font-bold tracking-tight">
+<span class="material-symbols-outlined !text-[14px]">edit</span> Edit
+                </button>
+<button id="det-btn-delete" class="bg-error-container/20 hover:bg-error-container/40 text-error flex items-center gap-1 px-3 py-1.5 rounded-sm transition-all border border-error/10 font-label text-[10px] uppercase font-bold tracking-tight">
+<span class="material-symbols-outlined !text-[14px]">delete</span> Delete
+                </button>
+</div>
+</div>
+<!-- Identity Header -->
+<div class="bg-surface-container-lowest p-4 border-l-4 border-primary mb-6 flex items-start gap-4">
+<div class="w-12 h-12 bg-surface-container-high flex items-center justify-center rounded-sm shrink-0 border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+</div>
+<div>
+<h2 id="det-account-name" class="font-headline text-xl font-extrabold tracking-tight uppercase leading-none mb-1">...</h2>
+<p id="det-id" class="font-label text-xs text-on-surface-variant tracking-wider">ID: ...</p>
+</div>
+</div>
+<!-- Technical Data Fields -->
+<div class="flex flex-col gap-[2px] bg-outline-variant/10">
+<!-- Field: Website Name -->
+<div class="grid grid-cols-[110px_1fr_auto] items-center bg-surface-container-low px-3 py-2.5">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest">Site Name</label>
+<div id="det-site-name" class="font-label text-sm font-medium text-on-surface">...</div>
+<button id="det-copy-site" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1" title="Copy">content_copy</button>
+</div>
+<!-- Field: URL -->
+<div class="grid grid-cols-[110px_1fr_auto] items-center bg-surface-container-low px-3 py-2.5">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest">URL</label>
+<div id="det-url" class="font-label text-sm text-primary truncate">...</div>
+<a id="det-link-url" href="#" target="_blank" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1">open_in_new</a>
+</div>
+<!-- Field: Username -->
+<div class="grid grid-cols-[110px_1fr_auto] items-center bg-surface-container-low px-3 py-2.5">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest">Username</label>
+<div id="det-username" class="font-label text-sm text-on-surface">...</div>
+<button id="det-copy-username" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1" title="Copy">content_copy</button>
+</div>
+<!-- Field: Password -->
+<div class="grid grid-cols-[110px_1fr_auto] items-center bg-surface-container-low px-3 py-2.5">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest">Password</label>
+<div id="det-password" data-password="" class="font-label text-sm tracking-widest text-on-surface cursor-pointer">••••••••••••••••</div>
+<div class="flex gap-1">
+<button id="det-toggle-password" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1">visibility</button>
+<button id="det-copy-password" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1" title="Copy">content_copy</button>
+</div>
+</div>
+<!-- Field: Security PIN -->
+<div class="grid grid-cols-[110px_1fr_auto] items-center bg-surface-container-low px-3 py-2.5">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest">Security PIN</label>
+<div id="det-pin" data-pin="" class="font-label text-sm tracking-[0.4em] text-on-surface cursor-pointer">••••</div>
+<div class="flex gap-1">
+<button id="det-toggle-pin" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1">visibility</button>
+<button id="det-copy-pin" class="material-symbols-outlined text-outline hover:text-primary transition-colors p-1" title="Copy">content_copy</button>
+</div>
+</div>
+<!-- Field: Custom Notes -->
+<div class="grid grid-cols-[110px_1fr] items-start bg-surface-container-low px-3 py-3">
+<label class="font-label text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mt-1">Notes</label>
+<div id="det-notes" class="font-label text-xs text-on-surface-variant leading-relaxed bg-surface-container-lowest/50 p-2 border border-outline-variant/5">
+    ...
+</div>
+</div>
+</div>
+<!-- Technical Health / Status Section -->
+<div class="mt-6 grid grid-cols-2 gap-2">
+<div class="bg-surface-container-high p-3 border-t-2 border-primary-container">
+<div class="font-label text-[9px] uppercase text-on-secondary-container font-bold mb-1">Password Strength</div>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-surface-container-lowest overflow-hidden">
+<div id="det-strength-bar" class="h-full bg-primary" style="width: 0%"></div>
+</div>
+<span id="det-strength-pct" class="font-label text-[10px] text-primary">—</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-3 border-t-2 border-tertiary">
+<div class="font-label text-[9px] uppercase text-on-secondary-container font-bold mb-1">Sync Status</div>
+<div class="flex items-center gap-1.5">
+<span id="det-sync-dot" class="w-1.5 h-1.5 bg-outline rounded-full"></span>
+<span id="det-sync-label" class="font-label text-[10px] text-on-surface-variant">CHECKING...</span>
+</div>
+</div>
+</div>
+<!-- Footer Timestamp -->
+<div class="mt-8 flex justify-between items-center px-1 border-t border-outline-variant/10 pt-4">
+<div class="flex items-center gap-2 text-[10px] font-label text-on-surface-variant uppercase tracking-tighter">
+<span class="material-symbols-outlined !text-xs">update</span>
+<span id="det-last-updated">Local Storage</span>
+</div>
+<div class="font-label text-[9px] text-on-surface-variant/40">PLAIN TEXT MODE</div>
+</div>
+</main>
+<!-- BottomNavBar Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-16 bg-[#131313] border-t border-[#424754]/15">
+<a href="/" class="flex flex-col items-center justify-center border-t-2 border-[#adc6ff] text-[#adc6ff] bg-[#2a2a2a] pt-2 pb-1 px-4 h-full">
+<span class="material-symbols-outlined mb-1">lock</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Vault</span>
+</a>
+<a href="/generator.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">vpn_key</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Generator</span>
+</a>
+<a href="/sync.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">sync</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Sync</span>
+</a>
+</nav>
+</body></html>

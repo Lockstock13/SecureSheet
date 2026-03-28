@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#0e0e0e"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon.png"/>
+<title>SecureSheet | Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Space+Grotesk:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0e0e0e;
+            color: #e5e2e1;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  
+    <script type="module" src="/src/main.js"></script>
+</head>
+<body class="bg-surface-container-lowest min-h-screen pb-20">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-4 py-3 bg-[#0e0e0e] border-b border-outline-variant/10 sticky top-0 z-50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">shield</span>
+<span class="text-base font-black tracking-tighter text-on-surface font-['Manrope'] uppercase">SecureSheet</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="sync-indicator w-2 h-2 rounded-full bg-[#424754]" title="Google Sheets: Not Connected"></span>
+<button class="btn-lock-app w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-outline-variant/15 hover:bg-surface-container-highest transition-colors" title="Lock Vault">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock</span>
+</button>
+</div>
+</header>
+<main class="max-w-4xl mx-auto px-4 py-6">
+<!-- Search & Filter Area -->
+<section class="space-y-4 mb-8">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input id="vault-search" class="w-full bg-surface-container-lowest border-l-2 border-l-primary border-t-0 border-r-0 border-b-0 focus:ring-0 text-sm font-['Space_Grotesk'] py-3 pl-10 placeholder:text-outline/40 placeholder:uppercase tracking-wider focus:outline-none" placeholder="SEARCH CRYPTOGRAPHIC VAULT..." type="text"/>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold font-['Space_Grotesk'] uppercase tracking-widest rounded-sm">All</button>
+<button class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold font-['Space_Grotesk'] uppercase tracking-widest rounded-sm hover:bg-surface-container-highest transition-colors">Finance</button>
+<button class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold font-['Space_Grotesk'] uppercase tracking-widest rounded-sm hover:bg-surface-container-highest transition-colors">Work</button>
+<button class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold font-['Space_Grotesk'] uppercase tracking-widest rounded-sm hover:bg-surface-container-highest transition-colors">Social</button>
+</div>
+</section>
+<!-- Data Stats Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+<div class="bg-surface-container-high p-3 border-l border-primary/30">
+<p class="text-[10px] font-['Space_Grotesk'] text-on-surface-variant uppercase tracking-tighter">Total Assets</p>
+<p class="text-xl font-bold font-['Manrope'] text-on-surface">128</p>
+</div>
+<div class="bg-surface-container-high p-3 border-l border-error/30">
+<p class="text-[10px] font-['Space_Grotesk'] text-on-surface-variant uppercase tracking-tighter">Compromised</p>
+<p class="text-xl font-bold font-['Manrope'] text-error">02</p>
+</div>
+<div class="bg-surface-container-high p-3 border-l border-tertiary/30">
+<p class="text-[10px] font-['Space_Grotesk'] text-on-surface-variant uppercase tracking-tighter">Health Score</p>
+<p class="text-xl font-bold font-['Manrope'] text-on-surface">94%</p>
+</div>
+<div class="bg-surface-container-high p-3 border-l border-primary-container/30">
+<p class="text-[10px] font-['Space_Grotesk'] text-on-surface-variant uppercase tracking-tighter">Sync Status</p>
+<p class="text-xl font-bold font-['Manrope'] text-primary">LIVE</p>
+</div>
+</section>
+<!-- Credential Cards List -->
+<section id="vault-entries" class="space-y-1">
+    <!-- Dynamic JS rendering of entries will happen here -->
+</section>
+<!-- Technical Metadata Footer (Appears on scroll/desktop) -->
+<footer class="mt-12 py-6 border-t border-outline-variant/10">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 opacity-40 grayscale">
+<div class="font-['JetBrains_Mono'] text-[9px] uppercase tracking-widest space-y-1">
+<p>Data stored in Plain Text mode</p>
+<p id="footer-last-sync">Last Sync: Never</p>
+</div>
+<div class="font-['JetBrains_Mono'] text-[9px] uppercase tracking-widest text-right">
+<p>Client: v1.0.0</p>
+<p id="footer-conn-status">Connection: Offline</p>
+</div>
+</div>
+</footer>
+</main>
+<!-- FAB -->
+<a href="/add.html" class="fixed bottom-24 right-6 w-14 h-14 bg-primary-container text-on-primary-container flex items-center justify-center shadow-xl hover:scale-105 transition-transform duration-150 active:scale-95 z-40 rounded-sm">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</a>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-16 bg-[#131313] border-t border-[#424754]/15">
+<a href="/" class="flex flex-col items-center justify-center border-t-2 border-[#adc6ff] text-[#adc6ff] bg-[#2a2a2a] pt-2 pb-1 px-4 h-full">
+<span class="material-symbols-outlined mb-1">lock</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Vault</span>
+</a>
+<a href="/generator.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">vpn_key</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Generator</span>
+</a>
+<a href="/sync.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">sync</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Sync</span>
+</a>
+</nav>
+</body></html>

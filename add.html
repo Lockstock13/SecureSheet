@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0e0e0e">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <title>SecureSheet - Add Data</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        body { min-height: max(884px, 100dvh); background-color: #0e0e0e; color: #e5e2e1; font-family: 'Inter', sans-serif;}
+    </style>
+    <script type="module" src="/src/main.js"></script>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased">
+    <!-- Top Nav -->
+    <header class="flex justify-between items-center w-full px-4 py-3 bg-[#131313] border-b border-outline-variant/15 sticky top-0 z-50">
+        <button id="btn-back-vault" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer" onclick="window.location.href='/'">arrow_back</button>
+        <span class="text-xs font-black tracking-widest text-slate-100 font-['Space_Grotesk'] uppercase mr-auto md:mr-0 ml-4">New Entry</span>
+        <button class="px-4 py-1.5 bg-primary-container text-on-primary-container text-[10px] font-bold font-['Space_Grotesk'] uppercase tracking-widest rounded-sm hover:scale-105 transition-transform" id="btn-save-entry">SAVE ALONE</button>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 py-6">
+        <form id="add-entry-form" class="space-y-6">
+            <!-- Account Identity Group -->
+            <div class="space-y-4">
+                <h2 class="text-[10px] text-primary uppercase font-bold tracking-widest border-b border-primary/20 pb-1">Account Identity</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Site / App Name *</label>
+                        <input type="text" id="add-account-name" required class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-primary text-sm font-medium py-2 px-3 focus:outline-none placeholder:text-outline-variant/50 transition-colors" placeholder="e.g. Google Cloud">
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Category</label>
+                        <select id="add-category" class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-primary text-sm font-medium py-2 px-3 focus:outline-none appearance-none cursor-pointer">
+                            <option value="Work">Work</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Social">Social</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Login URL (Optional)</label>
+                    <input type="url" id="add-url" class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-primary text-sm font-['JetBrains_Mono'] py-2 px-3 focus:outline-none placeholder:text-outline-variant/30 text-primary-container" placeholder="https://console.cloud.google.com">
+                </div>
+            </div>
+
+            <!-- Credentials Group -->
+            <div class="space-y-4 pt-4">
+                <h2 class="text-[10px] text-tertiary uppercase font-bold tracking-widest border-b border-tertiary/20 pb-1">Secure Credentials</h2>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Username / Email *</label>
+                    <input type="text" id="add-username" required class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-tertiary text-sm py-2 px-3 focus:outline-none placeholder:text-outline-variant/50">
+                </div>
+
+                <div class="space-y-1 relative">
+                    <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Password *</label>
+                    <div class="relative">
+                        <input type="password" id="add-password" required class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-tertiary text-sm font-['JetBrains_Mono'] tracking-widest py-2 px-3 focus:outline-none pr-10">
+                        <button type="button" id="toggle-pwd-btn" class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline-variant hover:text-on-surface text-sm p-1">visibility</button>
+                    </div>
+                </div>
+
+                <div class="space-y-1 relative">
+                    <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Security PIN (Optional)</label>
+                    <div class="relative w-1/2">
+                        <input type="password" id="add-pin" class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-tertiary text-sm font-['JetBrains_Mono'] tracking-[0.4em] py-2 px-3 focus:outline-none pr-10" maxlength="8">
+                        <button type="button" id="toggle-pin-btn" class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline-variant hover:text-on-surface text-sm p-1">visibility</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta Group -->
+            <div class="space-y-4 pt-4">
+                <h2 class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest border-b border-outline-variant/20 pb-1">Metadata (Optional)</h2>
+                
+                <div class="space-y-1">
+                    <label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Secure Notes</label>
+                    <textarea id="add-notes" rows="3" class="w-full bg-surface-container-high border border-outline-variant/20 focus:border-on-surface-variant text-xs py-2 px-3 focus:outline-none resize-none" placeholder="Add 2FA recovery codes or security questions here..."></textarea>
+                </div>
+            </div>
+
+            <!-- Helper Text -->
+            <div class="bg-surface-container-high p-3 border-l-2 border-primary mt-6">
+                <p class="text-[9px] font-['Space_Grotesk'] text-on-surface-variant uppercase tracking-widest leading-relaxed">
+                    Data saved locally in browser memory. Google Sheets sync is required to persist permanently in the cloud.
+                </p>
+            </div>
+        </form>
+    </main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-16 bg-[#131313] border-t border-[#424754]/15">
+<a href="/" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">lock</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Vault</span>
+</a>
+<a href="/generator.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">vpn_key</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Generator</span>
+</a>
+<a href="/sync.html" class="flex flex-col items-center justify-center text-[#c2c6d6] pt-2 pb-1 px-4 hover:bg-[#353534] transition-colors h-full">
+<span class="material-symbols-outlined mb-1">sync</span>
+<span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">Sync</span>
+</a>
+</nav>
+</body>
+</html>
