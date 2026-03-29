@@ -8,6 +8,51 @@ const currentPath = (() => {
 
 const isPagePath = (slug) => currentPath === `/${slug}` || currentPath.endsWith(`/${slug}.html`);
 
+const TOAST_CONTAINER_ID = 'securesheet-toast-container';
+let lastToastAt = 0;
+let lastSyncToastAt = 0;
+
+const ensureToastContainer = () => {
+    let el = document.getElementById(TOAST_CONTAINER_ID);
+    if (el) return el;
+
+    el = document.createElement('div');
+    el.id = TOAST_CONTAINER_ID;
+    el.className = 'fixed left-4 right-4 bottom-20 md:bottom-6 md:left-6 md:right-auto z-[9999] flex flex-col gap-2 pointer-events-none';
+    document.body.appendChild(el);
+    return el;
+};
+
+const showToast = (message, variant = 'info', ttlMs = 2600) => {
+    const container = ensureToastContainer();
+    const toast = document.createElement('div');
+
+    const base = 'pointer-events-none select-none bg-surface-container-high border border-outline-variant/20 text-on-surface px-3 py-2 shadow-lg';
+    const size = 'text-[11px] mono uppercase tracking-widest leading-snug';
+    const motion = 'transition-all duration-200 ease-out opacity-0 translate-y-2';
+    const color =
+        variant === 'success' ? 'border-primary/30' :
+        variant === 'warn' ? 'border-tertiary/30' :
+        variant === 'error' ? 'border-error/30 text-error' :
+        'border-outline-variant/20';
+
+    toast.className = `${base} ${size} ${motion} ${color}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Enter animation
+    requestAnimationFrame(() => {
+        toast.className = toast.className.replace('opacity-0', 'opacity-100').replace('translate-y-2', 'translate-y-0');
+    });
+
+    const remove = () => {
+        toast.className = toast.className.replace('opacity-100', 'opacity-0').replace('translate-y-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 220);
+    };
+
+    setTimeout(remove, ttlMs);
+};
+
 // 1. Dummy Database Defaults
 const defaultDB = [
     {
@@ -86,6 +131,13 @@ const saveDB = () => {
     localStorage.setItem('vault_db', JSON.stringify(DB));
     // Mark pending upload so we can flush after navigation (e.g., /add redirects immediately).
     localStorage.setItem('securesheet_pending_upload', 'true');
+
+    // Light UX feedback without spamming
+    const now = Date.now();
+    if (now - lastToastAt > 1200) {
+        lastToastAt = now;
+        showToast('Saved locally', 'info', 1600);
+    }
     
     // Background Google Sync trigger if online
     if (window.gapi && gapi.client && gapi.client.getToken() !== null && localStorage.getItem('securesheet_spreadsheet_id')) {
@@ -99,6 +151,12 @@ const saveDB = () => {
                 localStorage.setItem('securesheet_sync_count', (count + 1).toString());
                 localStorage.removeItem('securesheet_pending_upload');
                 console.log("Auto-upload complete.");
+
+                const t = Date.now();
+                if (t - lastSyncToastAt > 2500) {
+                    lastSyncToastAt = t;
+                    showToast('Synced to Google Sheets', 'success', 2000);
+                }
             }
         }, 1500); // debounce 1.5s
     }
@@ -225,9 +283,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 localStorage.setItem('securesheet_sync_count', (count + 1).toString());
                 localStorage.removeItem('securesheet_pending_upload');
                 console.log('[AutoSync] Pending upload flushed.');
+                const t = Date.now();
+                if (t - lastSyncToastAt > 2500) {
+                    lastSyncToastAt = t;
+                    showToast('Synced to Google Sheets', 'success', 2000);
+                }
             }
         } catch (e) {
             console.warn('[AutoSync] Pending flush failed.', e);
+            showToast('Sync failed. Open Sync page.', 'warn', 2400);
         }
     };
     
@@ -939,17 +1003,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateTelemetryReadout();
         };
 
+        const setForceButtonMode = () => {
+            const modePush = document.getElementById('sync-mode-push');
+            const isPush = modePush && modePush.checked;
+            btnForce.textContent = isPush ? 'SYNC NOW' : 'PULL NOW';
+            btnForce.title = isPush ? 'Upload local vault to Sheets now' : 'Download vault from Sheets to this device';
+        };
+
+        const setForceButtonLoading = (loading) => {
+            if (!btnForce) return;
+            btnForce.disabled = !!loading;
+            if (loading) {
+                btnForce.classList.add('opacity-70', 'pointer-events-none');
+            } else {
+                btnForce.classList.remove('opacity-70', 'pointer-events-none');
+            }
+        };
+
         // Initialize Google Scripts explicitly for Sync Dashboard
         loadGoogleScripts(() => {
             log('Google sync engine ready.', 'INFO');
             checkApiStatusUI();
             updateTelemetryReadout();
+            if (btnForce) setForceButtonMode();
+
+            const modePush = document.getElementById('sync-mode-push');
+            const modePull = document.getElementById('sync-mode-pull');
+            if (modePush) modePush.addEventListener('change', setForceButtonMode);
+            if (modePull) modePull.addEventListener('change', setForceButtonMode);
             
             btnConnect.addEventListener('click', () => {
                 log('Opening Google permission prompt...', 'INFO');
                 authenticate(async () => {
                     log('Google account connected. SecureSheet storage ready.', 'INFO');
                     checkApiStatusUI();
+                    showToast('Google connected', 'success', 1800);
                     
                     // Force a local hydration automatically initially
                     log('Checking Google Sheets for existing vault data...', 'INFO');
@@ -959,15 +1047,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                         localStorage.setItem('vault_db', JSON.stringify(DB));
                         registerSyncCycle();
                         log(`Imported ${remoteData.length} records from Google Sheets.`, 'INFO');
+                        showToast(`Restored ${remoteData.length} records`, 'success', 2200);
                     } else if(remoteData && remoteData.length === 0) {
                         // Remote is empty, push local!
                         log(`Cloud sheet is empty. Uploading ${DB.length} local records now.`, 'INFO');
                         await uploadSync(DB);
                         registerSyncCycle();
                         log('Initial backup completed. Future edits will auto-sync.', 'INFO');
+                        showToast('Initial backup completed', 'success', 2200);
                     }
                 }, (err) => {
                     log('Google connection was cancelled or failed.', 'ERROR');
+                    showToast('Google connect failed', 'error', 2400);
                 });
             });
 
@@ -975,33 +1066,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const modePush = document.getElementById('sync-mode-push');
                 const isPush = modePush && modePush.checked;
 
-                btnForce.textContent = "SYNCING...";
-                if (isPush) {
-                    await ensureSpreadsheetReady();
-                    log('Uploading the latest vault state to Google Sheets...', 'INFO');
-                    const success = await uploadSync(DB);
-                    if(success) {
-                        registerSyncCycle();
-                        log(`Sync complete. ${DB.length} rows updated in Google Sheets.`, 'INFO');
+                setForceButtonLoading(true);
+                btnForce.textContent = isPush ? 'SYNCING...' : 'PULLING...';
+                try {
+                    if (isPush) {
+                        await ensureSpreadsheetReady();
+                        log('Uploading the latest vault state to Google Sheets...', 'INFO');
+                        const success = await uploadSync(DB);
+                        if(success) {
+                            registerSyncCycle();
+                            log(`Sync complete. ${DB.length} rows updated in Google Sheets.`, 'INFO');
+                            showToast('Synced to Google Sheets', 'success', 2000);
+                        } else {
+                            log('Sync failed while updating Google Sheets.', 'ERROR');
+                            showToast('Sync failed', 'error', 2400);
+                        }
                     } else {
-                        log('Sync failed while updating Google Sheets.', 'ERROR');
+                        await ensureSpreadsheetReady();
+                        log('Downloading the latest cloud snapshot...', 'INFO');
+                        const remoteData = await downloadSync();
+                        if(remoteData && remoteData.length > 0) {
+                            DB = remoteData;
+                            localStorage.setItem('vault_db', JSON.stringify(DB));
+                            registerSyncCycle();
+                            log('Cloud restore complete. Local vault replaced with the latest sheet data.', 'INFO');
+                            showToast(`Pulled ${remoteData.length} records`, 'success', 2200);
+                        } else if (remoteData && remoteData.length === 0) {
+                            log('Cloud sheet is reachable but currently empty. Local vault was left unchanged.', 'WARN');
+                            showToast('Cloud sheet empty', 'warn', 2200);
+                        } else {
+                            log('Cloud restore failed.', 'ERROR');
+                            showToast('Pull failed', 'error', 2400);
+                        }
                     }
-                } else {
-                    await ensureSpreadsheetReady();
-                    log('Downloading the latest cloud snapshot...', 'INFO');
-                    const remoteData = await downloadSync();
-                    if(remoteData && remoteData.length > 0) {
-                        DB = remoteData;
-                        localStorage.setItem('vault_db', JSON.stringify(DB));
-                        registerSyncCycle();
-                        log('Cloud restore complete. Local vault replaced with the latest sheet data.', 'INFO');
-                    } else if (remoteData && remoteData.length === 0) {
-                        log('Cloud sheet is reachable but currently empty. Local vault was left unchanged.', 'WARN');
-                    } else {
-                        log('Cloud restore failed.', 'ERROR');
-                    }
+                } finally {
+                    setForceButtonLoading(false);
+                    setForceButtonMode();
                 }
-                btnForce.textContent = "SYNC NOW";
             });
 
             btnRevoke.addEventListener('click', () => {
