@@ -10,6 +10,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        lock: resolve(__dirname, 'lock.html'),
+        add: resolve(__dirname, 'add.html'),
         sync: resolve(__dirname, 'sync.html'),
         generator: resolve(__dirname, 'generator.html'),
         details: resolve(__dirname, 'details.html'),
