@@ -84,6 +84,8 @@ if (savedData) {
 let syncTimeout = null;
 const saveDB = () => {
     localStorage.setItem('vault_db', JSON.stringify(DB));
+    // Mark pending upload so we can flush after navigation (e.g., /add redirects immediately).
+    localStorage.setItem('securesheet_pending_upload', 'true');
     
     // Background Google Sync trigger if online
     if (window.gapi && gapi.client && gapi.client.getToken() !== null && localStorage.getItem('securesheet_spreadsheet_id')) {
@@ -95,6 +97,7 @@ const saveDB = () => {
                 localStorage.setItem('securesheet_last_sync', Date.now().toString());
                 let count = parseInt(localStorage.getItem('securesheet_sync_count') || '0');
                 localStorage.setItem('securesheet_sync_count', (count + 1).toString());
+                localStorage.removeItem('securesheet_pending_upload');
                 console.log("Auto-upload complete.");
             }
         }, 1500); // debounce 1.5s
@@ -205,6 +208,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- GLOBAL SYNC STATUS (runs on EVERY page) ---
     const savedSheetId = localStorage.getItem('securesheet_spreadsheet_id');
+    const flushPendingUploadIfNeeded = async () => {
+        const pending = localStorage.getItem('securesheet_pending_upload') === 'true';
+        if (!pending) return;
+
+        const sheetId = localStorage.getItem('securesheet_spreadsheet_id');
+        const hasToken = hasValidToken();
+        if (!sheetId || !hasToken) return;
+
+        try {
+            console.log('[AutoSync] Pending upload detected. Flushing to Google Sheets...');
+            const ok = await uploadSync(DB);
+            if (ok) {
+                localStorage.setItem('securesheet_last_sync', Date.now().toString());
+                let count = parseInt(localStorage.getItem('securesheet_sync_count') || '0');
+                localStorage.setItem('securesheet_sync_count', (count + 1).toString());
+                localStorage.removeItem('securesheet_pending_upload');
+                console.log('[AutoSync] Pending upload flushed.');
+            }
+        } catch (e) {
+            console.warn('[AutoSync] Pending flush failed.', e);
+        }
+    };
     
     const updateSyncIndicators = () => {
         const dots = document.querySelectorAll('.sync-indicator');
@@ -232,6 +257,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const restored = restoreToken();
             if (restored) {
                 console.log('[AutoSync] Token restored! Auto-sync is active.');
+                // If we navigated away quickly (e.g., /add -> /), flush pending changes now.
+                flushPendingUploadIfNeeded();
             } else {
                 console.log('[AutoSync] No saved token. Connect via Sync page.');
             }
