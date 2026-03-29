@@ -54,8 +54,8 @@
 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
 <!-- Section 1: Connection Status -->
 <section class="md:col-span-7 bg-surface-container-high p-4 border border-outline-variant/10">
-<div class="flex justify-between items-start mb-6">
-<div>
+<div class="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+<div class="min-w-0">
 <h2 class="mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-1">Authorization Protocol</h2>
 <div class="flex items-center gap-2">
 <div id="sync-status-dot" class="w-2 h-2 bg-error animate-pulse"></div>
@@ -63,7 +63,7 @@
 </div>
 <p id="sync-status-hint" class="mono mt-2 max-w-md text-[10px] leading-relaxed text-on-surface-variant">Connect Google once to enable backup and sync across your devices.</p>
 </div>
-<button id="btn-sync-connect" class="bg-primary-container text-on-primary-container px-3 py-1.5 text-[11px] mono font-bold uppercase border border-primary/20 hover:brightness-110 active:opacity-80 transition-all flex items-center gap-2">
+<button id="btn-sync-connect" class="w-full justify-center self-stretch bg-primary-container text-on-primary-container px-3 py-2 text-[11px] mono font-bold uppercase border border-primary/20 hover:brightness-110 active:opacity-80 transition-all flex items-center gap-2 md:w-auto md:self-start">
 <span class="material-symbols-outlined text-[14px]" data-icon="login">login</span>
                         Connect to Google
                     </button>
@@ -103,7 +103,8 @@
 </section>
 <!-- Section 2: Sync Mode -->
 <section class="md:col-span-12 bg-surface-container-high p-4 border border-outline-variant/10">
-<h2 class="mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-4">Transmission Mode Select</h2>
+<h2 class="mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-2">Transmission Mode Select</h2>
+<p class="mono text-[10px] leading-relaxed text-on-surface-variant mb-4">Direct Vault Export stays in auto-sync mode after Google is connected. Use Sync Now only if you want to push immediately, or switch to Cloud Recovery when restoring this device from Sheets.</p>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 <!-- Option 1 -->
 <div class="group cursor-pointer border-l-2 border-transparent bg-surface-container-lowest p-4 hover:border-primary transition-all">
@@ -112,8 +113,11 @@
 <input id="sync-mode-push" checked="" class="form-radio bg-surface-container-high border-outline-variant text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 rounded-none" name="sync-mode" type="radio" value="push"/>
 </div>
 <div>
+<div class="flex items-center gap-2">
 <span class="block font-bold text-sm uppercase tracking-tight font-headline">Direct Vault Export</span>
-<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Default mode. After Google is connected, every edit is auto-synced to your sheet. Use Sync Now only when you want an immediate manual push.</span>
+<span class="mono text-[9px] uppercase tracking-widest text-primary">Auto</span>
+</div>
+<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Default mode. After Google is connected, every edit is auto-synced to your sheet. Sync Now is only a manual shortcut.</span>
 </div>
 </label>
 </div>
@@ -124,8 +128,11 @@
 <input id="sync-mode-pull" class="form-radio bg-surface-container-high border-outline-variant text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 rounded-none" name="sync-mode" type="radio" value="pull"/>
 </div>
 <div>
+<div class="flex items-center gap-2">
 <span class="block font-bold text-sm uppercase tracking-tight font-headline">Cloud Recovery / Pull</span>
-<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Downloads pure data from Google Sheets into your device. Use this on a fresh device (e.g. mobile) to retrieve all your saved passwords.</span>
+<span class="mono text-[9px] uppercase tracking-widest text-tertiary">Manual</span>
+</div>
+<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Downloads the latest data from Google Sheets into this device. Use this on a fresh phone or when you need to restore from cloud.</span>
 </div>
 </label>
 </div>
