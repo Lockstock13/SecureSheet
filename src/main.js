@@ -1,5 +1,5 @@
 import './style.css';
-import { loadGoogleScripts, authenticate, revokeAccess, hasValidToken, downloadSync, uploadSync, silentReconnect, restoreToken } from './gapi.js';
+import { loadGoogleScripts, authenticate, revokeAccess, hasValidToken, downloadSync, uploadSync, silentReconnect, restoreToken, ensureSpreadsheetReady } from './gapi.js';
 
 const currentPath = (() => {
     const path = window.location.pathname.replace(/\/+$/, '');
@@ -950,6 +950,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 btnForce.textContent = "SYNCING...";
                 if (isPush) {
+                    await ensureSpreadsheetReady();
                     log('Uploading the latest vault state to Google Sheets...', 'INFO');
                     const success = await uploadSync(DB);
                     if(success) {
@@ -959,13 +960,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         log('Sync failed while updating Google Sheets.', 'ERROR');
                     }
                 } else {
+                    await ensureSpreadsheetReady();
                     log('Downloading the latest cloud snapshot...', 'INFO');
                     const remoteData = await downloadSync();
-                    if(remoteData) {
+                    if(remoteData && remoteData.length > 0) {
                         DB = remoteData;
                         localStorage.setItem('vault_db', JSON.stringify(DB));
                         registerSyncCycle();
                         log('Cloud restore complete. Local vault replaced with the latest sheet data.', 'INFO');
+                    } else if (remoteData && remoteData.length === 0) {
+                        log('Cloud sheet is reachable but currently empty. Local vault was left unchanged.', 'WARN');
                     } else {
                         log('Cloud restore failed.', 'ERROR');
                     }
