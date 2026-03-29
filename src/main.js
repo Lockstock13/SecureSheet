@@ -1,6 +1,13 @@
 import './style.css';
 import { loadGoogleScripts, authenticate, revokeAccess, hasValidToken, downloadSync, uploadSync, silentReconnect, restoreToken } from './gapi.js';
 
+const currentPath = (() => {
+    const path = window.location.pathname.replace(/\/+$/, '');
+    return path === '' ? '/' : path;
+})();
+
+const isPagePath = (slug) => currentPath === `/${slug}` || currentPath.endsWith(`/${slug}.html`);
+
 // 1. Dummy Database Defaults
 const defaultDB = [
     {
@@ -105,7 +112,7 @@ async function sha256(message) {
 document.addEventListener('DOMContentLoaded', async () => {
 
     // --- GATEKEEPER ROUTING ---
-    const isLockedPath = window.location.pathname.includes('lock.html');
+    const isLockedPath = isPagePath('lock');
     const isUnlocked = sessionStorage.getItem('securesheet_unlocked') === 'true';
     
     if (!isUnlocked && !isLockedPath) {
@@ -433,7 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- ADD ENTRY PAGE (add.html) ---
-    const isAddPage = window.location.pathname.includes('add.html');
+    const isAddPage = isPagePath('add');
     if (isAddPage) {
         const saveBtn = document.getElementById('btn-save-entry');
         const togglePwdBtn = document.getElementById('toggle-pwd-btn');
@@ -549,7 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- DETAILS PAGE (details.html) ---
-    const isDetailsPage = window.location.pathname.includes('details.html');
+    const isDetailsPage = isPagePath('details');
     if (isDetailsPage) {
         const urlParams = new URLSearchParams(window.location.search);
         let currentId = urlParams.get('id');
@@ -712,7 +719,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- GENERATOR PAGE (generator.html) ---
-    const isGeneratorPage = window.location.pathname.includes('generator.html');
+    const isGeneratorPage = isPagePath('generator');
     if (isGeneratorPage) {
         const outEl = document.getElementById('gen-output');
         const lengthInput = document.getElementById('gen-length');
@@ -824,13 +831,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- SYNC PAGE (sync.html) ---
-    const isSyncPage = window.location.pathname.includes('sync.html');
+    const isSyncPage = isPagePath('sync');
     if (isSyncPage) {
         const btnConnect = document.getElementById('btn-sync-connect');
         const btnForce = document.getElementById('btn-sync-force');
         const btnRevoke = document.getElementById('btn-sync-revoke');
         const statusDot = document.getElementById('sync-status-dot');
         const statusTxt = document.getElementById('sync-status-txt');
+        const statusHint = document.getElementById('sync-status-hint');
         const sheetName = document.getElementById('sync-sheet-name');
         const logsBox = document.getElementById('sync-logs');
 
@@ -849,18 +857,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (hasToken && sheetId) {
                 statusDot.className = 'w-2 h-2 bg-primary animate-pulse';
-                statusTxt.textContent = 'Google OAuth 2.0 Connected';
+                statusTxt.textContent = 'Google Sync Active';
+                if (statusHint) statusHint.textContent = 'Changes are saved locally and auto-synced to Google Sheets after edits.';
                 sheetName.textContent = `SecureSheet_Database (ID: ${sheetId.substring(0,6)}...)`;
                 sheetName.classList.remove('text-outline-variant');
                 sheetName.classList.add('text-on-surface');
                 
                 btnConnect.style.display = 'none';
                 btnForce.classList.remove('hidden');
+                btnForce.textContent = 'SYNC NOW';
                 
                 btnRevoke.classList.remove('opacity-50', 'pointer-events-none');
             } else {
                 statusDot.className = 'w-2 h-2 bg-error animate-pulse';
-                statusTxt.textContent = 'Offline / Disconnected';
+                statusTxt.textContent = 'Cloud Backup Not Connected';
+                if (statusHint) statusHint.textContent = 'Unlock with your master password first, then connect Google once to enable backup and multi-device sync.';
                 sheetName.textContent = 'No sheet linked';
                 sheetName.classList.add('text-outline-variant');
                 sheetName.classList.remove('text-on-surface');
@@ -903,33 +914,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Initialize Google Scripts explicitly for Sync Dashboard
         loadGoogleScripts(() => {
-            log('GSI and GAPI Engines loaded mapping API hooks.', 'INFO');
+            log('Google sync engine ready.', 'INFO');
             checkApiStatusUI();
             updateTelemetryReadout();
             
             btnConnect.addEventListener('click', () => {
-                log('Initiating OAuth 2.0 Identity Consent...', 'INFO');
+                log('Opening Google permission prompt...', 'INFO');
                 authenticate(async () => {
-                    log('OAuth Token acquired. Sheet allocated.', 'INFO');
+                    log('Google account connected. SecureSheet storage ready.', 'INFO');
                     checkApiStatusUI();
                     
                     // Force a local hydration automatically initially
-                    log('Pulling cloud data onto local device...', 'INFO');
+                    log('Checking Google Sheets for existing vault data...', 'INFO');
                     const remoteData = await downloadSync();
                     if(remoteData && remoteData.length > 0) {
                         DB = remoteData;
                         localStorage.setItem('vault_db', JSON.stringify(DB));
                         registerSyncCycle();
-                        log(`Sync successful. ${remoteData.length} records imported.`, 'INFO');
+                        log(`Imported ${remoteData.length} records from Google Sheets.`, 'INFO');
                     } else if(remoteData && remoteData.length === 0) {
                         // Remote is empty, push local!
-                        log(`Remote sheet is empty. Pushing ${DB.length} local records to cloud.`, 'INFO');
+                        log(`Cloud sheet is empty. Uploading ${DB.length} local records now.`, 'INFO');
                         await uploadSync(DB);
                         registerSyncCycle();
-                        log('Push complete.', 'INFO');
+                        log('Initial backup completed. Future edits will auto-sync.', 'INFO');
                     }
                 }, (err) => {
-                    log('OAuth Connection Rejected or Failed.', 'ERROR');
+                    log('Google connection was cancelled or failed.', 'ERROR');
                 });
             });
 
@@ -939,27 +950,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 btnForce.textContent = "SYNCING...";
                 if (isPush) {
-                    log('Enforcing Vault Export cycle...', 'INFO');
+                    log('Uploading the latest vault state to Google Sheets...', 'INFO');
                     const success = await uploadSync(DB);
                     if(success) {
                         registerSyncCycle();
-                        log(`Direct Export Success. ${DB.length} rows updated remotely.`, 'INFO');
+                        log(`Sync complete. ${DB.length} rows updated in Google Sheets.`, 'INFO');
                     } else {
-                        log('Sync payload rejected by remote server.', 'ERROR');
+                        log('Sync failed while updating Google Sheets.', 'ERROR');
                     }
                 } else {
-                    log('Pulling latest snapshot from cloud...', 'INFO');
+                    log('Downloading the latest cloud snapshot...', 'INFO');
                     const remoteData = await downloadSync();
                     if(remoteData) {
                         DB = remoteData;
                         localStorage.setItem('vault_db', JSON.stringify(DB));
                         registerSyncCycle();
-                        log(`Cloud Recovery Success. Device local vault overwritten.`, 'INFO');
+                        log('Cloud restore complete. Local vault replaced with the latest sheet data.', 'INFO');
                     } else {
-                        log('Pull sync failed.', 'ERROR');
+                        log('Cloud restore failed.', 'ERROR');
                     }
                 }
-                btnForce.textContent = "FORCE SYNC";
+                btnForce.textContent = "SYNC NOW";
             });
 
             btnRevoke.addEventListener('click', () => {
@@ -967,7 +978,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if(conf) {
                     revokeAccess();
                     checkApiStatusUI();
-                    log('Access Revoked. Tokens burned.', 'WARN');
+                    log('Google access revoked. Vault stays local until you reconnect.', 'WARN');
                 }
             });
         });
@@ -990,4 +1001,3 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-

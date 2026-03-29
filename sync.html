@@ -61,6 +61,7 @@
 <div id="sync-status-dot" class="w-2 h-2 bg-error animate-pulse"></div>
 <span id="sync-status-txt" class="text-sm font-bold font-headline">Offline / Disconnected</span>
 </div>
+<p id="sync-status-hint" class="mono mt-2 max-w-md text-[10px] leading-relaxed text-on-surface-variant">Connect Google once to enable backup and sync across your devices.</p>
 </div>
 <button id="btn-sync-connect" class="bg-primary-container text-on-primary-container px-3 py-1.5 text-[11px] mono font-bold uppercase border border-primary/20 hover:brightness-110 active:opacity-80 transition-all flex items-center gap-2">
 <span class="material-symbols-outlined text-[14px]" data-icon="login">login</span>
@@ -78,7 +79,7 @@
 <p id="sync-sheet-name" class="text-sm font-medium truncate font-body text-outline-variant">Not detected</p>
 </div>
 </div>
-<button id="btn-sync-force" class="hidden bg-surface-container-highest px-3 py-1.5 text-[10px] mono uppercase border border-outline-variant/20 hover:border-primary transition-all rounded-sm text-on-surface">FORCE SYNC</button>
+<button id="btn-sync-force" class="hidden bg-surface-container-highest px-3 py-1.5 text-[10px] mono uppercase border border-outline-variant/20 hover:border-primary transition-all rounded-sm text-on-surface">SYNC NOW</button>
 </div>
 </div>
 </section>
@@ -112,7 +113,7 @@
 </div>
 <div>
 <span class="block font-bold text-sm uppercase tracking-tight font-headline">Direct Vault Export</span>
-<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Single-direction push to Google Sheets. Local changes automatically overwrite remote cell data on every trigger. High speed, minimal conflict. (Default)</span>
+<span class="block mono text-[11px] text-on-surface-variant leading-relaxed mt-1">Default mode. After Google is connected, every edit is auto-synced to your sheet. Use Sync Now only when you want an immediate manual push.</span>
 </div>
 </label>
 </div>
