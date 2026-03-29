@@ -116,11 +116,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isUnlocked = sessionStorage.getItem('securesheet_unlocked') === 'true';
     
     if (!isUnlocked && !isLockedPath) {
-        window.location.href = '/lock.html';
+        window.location.href = '/lock';
         return; // Halt execution
     }
 
-    // --- LOCK SCREEN LOGIC (lock.html) ---
+    // --- LOCK SCREEN LOGIC (lock) ---
     if (isLockedPath) {
         const storedHash = localStorage.getItem('securesheet_master_hash');
         const isRegistration = (storedHash === null);
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     lockButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             sessionStorage.removeItem('securesheet_unlocked');
-            window.location.href = '/lock.html';
+            window.location.href = '/lock';
         });
     });
 
@@ -260,16 +260,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     topNavItems.forEach(item => {
         const text = item.textContent.trim().toLowerCase();
         if (text === 'vault') bridge(item, '/');
-        else if (text === 'generator') bridge(item, '/generator.html');
-        else if (text === 'sync') bridge(item, '/sync.html');
+        else if (text === 'generator') bridge(item, '/generator');
+        else if (text === 'sync') bridge(item, '/sync');
     });
 
     const bottomNavItems = document.querySelectorAll('nav > *');
     bottomNavItems.forEach(item => {
         const text = item.textContent.trim().toLowerCase();
         if (text.includes('vault')) bridge(item, '/');
-        else if (text.includes('generator')) bridge(item, '/generator.html');
-        else if (text.includes('sync')) bridge(item, '/sync.html');
+        else if (text.includes('generator')) bridge(item, '/generator');
+        else if (text.includes('sync')) bridge(item, '/sync');
     });
 
     // --- VAULT LIST (index.html) ---
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                         return;
                     }
-                    window.location.href = `/details.html?id=${entry.id}`;
+                    window.location.href = `/details?id=${entry.id}`;
                 });
                 
                 vaultContainer.appendChild(node);
@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderVault();
     }
 
-    // --- ADD ENTRY PAGE (add.html) ---
+    // --- ADD ENTRY PAGE (add) ---
     const isAddPage = isPagePath('add');
     if (isAddPage) {
         const saveBtn = document.getElementById('btn-save-entry');
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- DETAILS PAGE (details.html) ---
+    // --- DETAILS PAGE (details) ---
     const isDetailsPage = isPagePath('details');
     if (isDetailsPage) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -646,7 +646,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if(btnEdit) {
                 btnEdit.addEventListener('click', () => {
-                    window.location.href = `/add.html?edit=${entry.id}`;
+                    window.location.href = `/add?edit=${entry.id}`;
                 });
             }
 
@@ -718,7 +718,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- GENERATOR PAGE (generator.html) ---
+    // --- GENERATOR PAGE (generator) ---
     const isGeneratorPage = isPagePath('generator');
     if (isGeneratorPage) {
         const outEl = document.getElementById('gen-output');
@@ -821,16 +821,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             btnStore.addEventListener('click', () => {
-                // When "Store" is clicked, we can redirect to add.html 
+                // When "Store" is clicked, we can redirect to add
                 // and pass the newly generated password via query param.
-                window.location.href = `/add.html?pwd=${encodeURIComponent(outEl.textContent)}`;
+                window.location.href = `/add?pwd=${encodeURIComponent(outEl.textContent)}`;
             });
 
             generatePassword(); // Initial run
         }
     }
 
-    // --- SYNC PAGE (sync.html) ---
+    // --- SYNC PAGE (sync) ---
     const isSyncPage = isPagePath('sync');
     if (isSyncPage) {
         const btnConnect = document.getElementById('btn-sync-connect');
