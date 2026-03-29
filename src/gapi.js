@@ -1,11 +1,26 @@
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
-const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+const DISCOVERY_DOCS = [
+    'https://sheets.googleapis.com/$discovery/rest?version=v4',
+    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+];
+const SHEET_TITLE = 'SecureSheet_Database';
+const SHEET_TAB = 'Vault';
+const HEADER_ROW = [["id", "account_name", "username", "password", "pin", "url", "category", "notes", "color", "icon"]];
 
 let tokenClient;
 let gapiInited = false;
 let gisInited = false;
 let spreadsheetId = localStorage.getItem('securesheet_spreadsheet_id') || null;
+
+const persistSpreadsheetId = (id) => {
+    spreadsheetId = id;
+    if (id) {
+        localStorage.setItem('securesheet_spreadsheet_id', id);
+    } else {
+        localStorage.removeItem('securesheet_spreadsheet_id');
+    }
+};
 
 export const loadGoogleScripts = (onReadyCallback) => {
     if (gapiInited && gisInited) {
@@ -119,41 +134,56 @@ export const revokeAccess = () => {
     if (token !== null) {
         google.accounts.oauth2.revoke(token.access_token, () => {
             gapi.client.setToken('');
-            spreadsheetId = null;
-            localStorage.removeItem('securesheet_spreadsheet_id');
+            persistSpreadsheetId(null);
             console.log('Access revoked');
         });
     }
 };
 
-// Setup Spreadsheet: Checks if 'SecureSheet_Database' exists, if not creates it.
+const ensureHeaderRow = async (id) => {
+    await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: id,
+        range: `${SHEET_TAB}!A1:J1`,
+        valueInputOption: 'USER_ENTERED',
+        resource: { values: HEADER_ROW }
+    });
+};
+
+const lookupExistingSpreadsheet = async () => {
+    const response = await gapi.client.drive.files.list({
+        pageSize: 10,
+        fields: 'files(id,name,createdTime)',
+        orderBy: 'createdTime desc',
+        q: `mimeType='application/vnd.google-apps.spreadsheet' and name='${SHEET_TITLE}' and trashed=false`
+    });
+
+    return response.result.files?.[0]?.id || null;
+};
+
+const createSpreadsheet = async () => {
+    const createResp = await gapi.client.sheets.spreadsheets.create({
+        resource: {
+            properties: {
+                title: SHEET_TITLE
+            },
+            sheets: [{
+                properties: { title: SHEET_TAB }
+            }]
+        }
+    });
+
+    return createResp.result.spreadsheetId;
+};
+
+// Setup Spreadsheet: reuse the user's existing SecureSheet file when possible, otherwise create it once.
 const setupSpreadsheet = async () => {
     try {
         if (!spreadsheetId) {
-            // Wait, Drive API isn't in discovery doc. So we create a new sheet using Sheets API!
-            const createResp = await gapi.client.sheets.spreadsheets.create({
-                resource: {
-                    properties: {
-                        title: "SecureSheet_Database"
-                    },
-                    sheets: [{
-                        properties: { title: "Vault" }
-                    }]
-                }
-            });
-            spreadsheetId = createResp.result.spreadsheetId;
-            localStorage.setItem('securesheet_spreadsheet_id', spreadsheetId);
-
-            // Add Header Row
-            await gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: spreadsheetId,
-                range: "Vault!A1:I1",
-                valueInputOption: "USER_ENTERED",
-                resource: {
-                    values: [["id", "account_name", "username", "password", "pin", "url", "category", "notes", "color", "icon"]]
-                }
-            });
+            const existingId = await lookupExistingSpreadsheet();
+            persistSpreadsheetId(existingId || await createSpreadsheet());
         }
+
+        await ensureHeaderRow(spreadsheetId);
     } catch (e) {
         console.error("Setup sheet failed", e);
         throw e;
@@ -166,7 +196,7 @@ export const downloadSync = async () => {
     try {
         const response = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Vault!A2:J1000',
+            range: `${SHEET_TAB}!A2:J1000`,
         });
         
         const rows = response.result.values || [];
@@ -184,6 +214,9 @@ export const downloadSync = async () => {
             icon: row[9] || 'vpn_key'
         }));
     } catch (e) {
+        if (e?.status === 404) {
+            persistSpreadsheetId(null);
+        }
         console.error("Download sync failed", e);
         return null;
     }
@@ -196,7 +229,7 @@ export const uploadSync = async (dbArray) => {
         // Clear existing data (below header)
         await gapi.client.sheets.spreadsheets.values.clear({
             spreadsheetId: spreadsheetId,
-            range: 'Vault!A2:J1000'
+            range: `${SHEET_TAB}!A2:J1000`
         });
 
         if (dbArray.length === 0) return true;
@@ -216,12 +249,15 @@ export const uploadSync = async (dbArray) => {
 
         await gapi.client.sheets.spreadsheets.values.update({
             spreadsheetId: spreadsheetId,
-            range: 'Vault!A2',
+            range: `${SHEET_TAB}!A2`,
             valueInputOption: 'USER_ENTERED',
             resource: { values: rows }
         });
         return true;
     } catch (e) {
+        if (e?.status === 404) {
+            persistSpreadsheetId(null);
+        }
         console.error("Upload sync failed", e);
         return false;
     }

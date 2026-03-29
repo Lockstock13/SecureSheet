@@ -1,12 +1,10 @@
-const CACHE_NAME = 'securesheet-v1';
+const CACHE_NAME = 'securesheet-v2';
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html',
-  '/sync.html',
-  '/generator.html',
-  '/details.html',
-  '/add.html',
-  '/lock.html',
+  '/lock',
+  '/add',
+  '/generator',
+  '/sync',
   '/manifest.json',
   '/icon.png'
 ];
@@ -17,6 +15,18 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => Promise.all(
+      cacheNames
+        .filter((cacheName) => cacheName !== CACHE_NAME)
+        .map((cacheName) => caches.delete(cacheName))
+    ))
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
