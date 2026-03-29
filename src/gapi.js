@@ -1,4 +1,4 @@
-const CLIENT_ID = '62935372889-0augrvl8c83c4j5hhlp3r7kf68vq47s6.apps.googleusercontent.com';
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
 

@@ -28,6 +28,16 @@ Netlify is another excellent platform for static sites.
    * **Publish directory:** `dist`
 5. Click **Deploy site**.
 
+### 3. Vercel Configuration
+1. Go to your Project Settings > Environment Variables.
+2. Add `VITE_GOOGLE_CLIENT_ID` with your Google Client ID.
+
+### 4. Google Cloud Console Setup
+1. Go to [API & Services > Credentials](https://console.cloud.google.com/apis/credentials).
+2. Edit your OAuth 2.0 Client ID.
+3. Add your Vercel deployment URL (e.g., `https://securesheet.vercel.app`) to **Authorized JavaScript Origins**.
+4. Save changes.
+
 ## Local Development
 To run the project locally on your machine while making changes:
 ```bash
